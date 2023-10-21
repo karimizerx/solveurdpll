@@ -29,6 +29,17 @@ Install [Dune](https://dune.readthedocs.io/en/latest/quick-start.html), the OCam
 $ opam install dune
 ```
 
+Configure your favorite [text
+editor](http://dev.realworldocaml.org/install.html#editor-setup). You
+will want to have a working, integrated type-checker in your editor,
+as well as type-directed completion. Your favorite text editor being
+Emacs, this leads to:
+
+```
+$ opam install user-setup tuareg ocamlformat merlin
+$ opam user-setup install
+```
+
 Make sure that your text editor applies
 [OCamlformat](https://ocaml.org/p/ocamlformat/0.22.4/doc/editor_setup.html#editor-setup)
 each time a file is modified, this helps settle styling war and avoids
