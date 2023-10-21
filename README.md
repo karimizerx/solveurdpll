@@ -29,6 +29,29 @@ Install [Dune](https://dune.readthedocs.io/en/latest/quick-start.html), the OCam
 $ opam install dune
 ```
 
+Make sure that your text editor applies
+[OCamlformat](https://ocaml.org/p/ocamlformat/0.22.4/doc/editor_setup.html#editor-setup)
+each time a file is modified, this helps settle styling war and avoids
+line-noisy patches down the line.
+
+In Emacs, this amounts to adding the following lines to your `.emacs`
+configuration file:
+
+```elisp
+(require 'ocamlformat)
+
+(add-hook 'tuareg-mode-hook (lambda ()
+  (define-key tuareg-mode-map (kbd "C-M-<tab>") #'ocamlformat)
+  (add-hook 'before-save-hook #'ocamlformat-before-save)))
+```
+
+If need be, you can invoke Dune to re-format the whole codebase:
+
+```
+$ dune fmt
+```
+
+
 ## Building solveurdpll
 
 To build the project, type:
