@@ -1,4 +1,0 @@
-(executable
- (public_name solveurdpll)
- (name main)
- (libraries solveurdpll))
