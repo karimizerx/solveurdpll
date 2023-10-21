@@ -22,3 +22,9 @@ For convenience, we setup a [local](https://opam.ocaml.org/blog/opam-local-switc
 $ opam switch create .
 $ eval $(opam env)
 ```
+
+Install [Dune](https://dune.readthedocs.io/en/latest/quick-start.html), the OCaml build system, using Opam:
+
+```
+$ opam install dune
+```
