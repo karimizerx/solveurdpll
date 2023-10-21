@@ -28,3 +28,42 @@ Install [Dune](https://dune.readthedocs.io/en/latest/quick-start.html), the OCam
 ```
 $ opam install dune
 ```
+
+## Building solveurdpll
+
+To build the project, type:
+
+```
+$ dune build
+```
+
+For continuous build, use
+
+```
+$ dune build --watch
+```
+
+instead.
+
+## Running solveurdpll
+
+To run the project, type:
+
+```
+$ dune exec solveurdpll
+```
+
+## Testing solveurdpll
+
+To test the project, type:
+
+```
+$ dune runtest
+```
+
+This can be combined with continuous build & test, using
+
+```
+$ dune runtest --watch
+```
+
