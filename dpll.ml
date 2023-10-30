@@ -1,7 +1,5 @@
 (* MP1 2023/2024 - dpll.ml *)
 
-open List
-
 (* fonctions utilitaires *)
 (* ----------------------------------------------------------- *)
 (* filter_map : ('a -> 'b option) -> 'a list -> 'b list
@@ -25,7 +23,7 @@ let print_modele : int list option -> unit = function
   | None -> print_string "UNSAT\n"
   | Some modele ->
       print_string "SAT\n";
-      let modele2 = sort (fun i j -> abs i - abs j) modele in
+      let modele2 = List.sort (fun i j -> abs i - abs j) modele in
       List.iter
         (fun i ->
           print_int i;
@@ -39,13 +37,17 @@ let rec remove_el l clause =
   | h :: t when h = l -> remove_el l t
   | h :: t -> h :: remove_el l t
 
-let getListOfProp (clauses : int list list) : int list =
+let rec occ l = function
+  | [] -> 0
+  | h :: t -> if h = l then 1 + occ l t else occ l t
+
+let getListOfProp clauses =
   let rec aux (clauses : int list list) (ens : int list) : int list =
     match clauses with
     | [] -> ens
-    | clause1 :: liste2clauses ->
-        aux liste2clauses
-          (ens @ List.filter (fun e -> not (List.mem e ens)) clause1)
+    | clause :: otherclauses ->
+        aux otherclauses
+          (ens @ List.filter (fun e -> not (List.mem e ens)) clause)
   in
   aux clauses []
 
@@ -59,13 +61,12 @@ let getMinLgClause clauses =
 
 let getMinClause clauses =
   let minlg = getMinLgClause clauses in
-  let rec aux clauses minlg ens =
+  let rec aux clauses ens =
     match clauses with
     | [] -> ens
-    | h :: t ->
-        if List.length h = minlg then aux t minlg (ens @ h) else aux t minlg ens
+    | h :: t -> if List.length h = minlg then aux t (ens @ h) else aux t ens
   in
-  aux clauses minlg []
+  aux clauses []
 
 let pp_clause clause =
   List.iter
@@ -90,11 +91,14 @@ let pp_clauses clauses =
 let rec simplifie l clauses =
   match clauses with
   | [] -> []
-  | clause1 :: liste2clauses when List.mem l clause1 ->
-      simplifie l liste2clauses
-  | clause1 :: liste2clauses when List.mem (-l) clause1 ->
-      remove_el (-l) clause1 :: simplifie l liste2clauses
-  | clause1 :: liste2clauses -> clause1 :: simplifie l liste2clauses
+  | clause :: otherclauses when List.mem l clause -> simplifie l otherclauses
+  | clause :: otherclauses -> remove_el (-l) clause :: simplifie l otherclauses
+
+(* let simplifie l clauses =
+   filter_map
+     (fun clause ->
+       if List.mem l clause then None else Some (remove_el l clause))
+     clauses *)
 
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
@@ -104,10 +108,10 @@ let rec solveur_split clauses interpretation =
   (* l'ensemble vide de clauses est satisfiable *)
   if clauses = [] then Some interpretation
   else if (* la clause vide n'est jamais satisfiable *)
-          mem [] clauses then None
+          List.mem [] clauses then None
   else
     (* branchement *)
-    let l = hd (hd clauses) in
+    let l = List.hd (List.hd clauses) in
     let branche = solveur_split (simplifie l clauses) (l :: interpretation) in
     match branche with
     | None -> solveur_split (simplifie (-l) clauses) (-l :: interpretation)
@@ -130,6 +134,14 @@ let rec pur clauses =
   in
   aux propositionslist
 
+(* let pur clauses =
+   let plist =
+     List.sort
+       (fun a b -> if a = b then 0 else if a < b then -1 else 1)
+       (List.concat clauses)
+   in
+   List.find (fun el -> List.mem (-el) plist) plist *)
+
 (* unitaire : int list list -> int
     - si 'clauses' contient au moins une clause unitaire, retourne
       le littéral de cette clause unitaire ;
@@ -149,6 +161,29 @@ let choix (clauses : int list list) : int =
     | h :: t -> aux t
   in
   aux mlist
+
+(* let choix2 (clauses : int list list) : int =
+   let clausesTrieesParTaille =
+     List.sort
+       (fun a b ->
+         if List.length a = List.length b then 0
+         else if List.length a < List.length b then -1
+         else 1)
+       clauses
+   in
+   (* let lenmin = List.length (List.nth clausesTrieesParTaille 0) in *)
+   let lenmin = getMinLgClause clauses in
+   let listPropInClausesMin =
+     List.concat
+       (List.filter (fun clause -> List.length clause = lenmin) clauses)
+   in
+   let listPropInClausesMinTriees =
+     List.sort
+       (fun a b -> if occ a = occ b then 0 else if occ a < occ b then -1 else 1)
+       listPropInClausesMin
+   in
+   List.nth listPropInClausesMinTriees
+     (List.length listPropInClausesMinTriees - 1) *)
 
 (* solveur_dpll_rec : int list list -> int list -> int list option *)
 let rec solveur_dpll_rec clauses interpretation =
@@ -265,28 +300,28 @@ let coloriage =
 (* ----------------------------------------------------------- *)
 
 (* let () =
-  print_string "phi = ";
-  pp_clauses ex;
-  print_endline "";
-  print_string "Taille de la plus petite clause = ";
-  print_int (getMinLgClause ex);
-  print_endline "";
-  print_string "Ensemble des propositions dans les plus petites clauses : ";
-  pp_clause (getMinClause ex);
-  print_endline "";
-  print_string "Proposition choisie par split : ";
-  print_int (choix ex);
-  print_endline "";
-  print_string "Ensembre des propositions de phi : ";
-  pp_clause (getListOfProp ex);
-  print_endline "";
-  print_endline "";
-  print_string "DPLL phi : ";
-  print_modele (solveur_dpll_rec exemple_7_4 []);
-  print_endline "";
-  print_int (pur ex);
-  print_endline "" *)
+   print_string "phi = ";
+   pp_clauses ex;
+   print_endline "";
+   print_string "Taille de la plus petite clause = ";
+   print_int (getMinLgClause ex);
+   print_endline "";
+   print_string "Ensemble des propositions dans les plus petites clauses : ";
+   pp_clause (getMinClause ex);
+   print_endline "";
+   print_string "Proposition choisie par split : ";
+   print_int (choix ex);
+   print_endline "";
+   print_string "Ensembre des propositions de phi : ";
+   pp_clause (getListOfProp ex);
+   print_endline "";
+   print_endline "";
+   print_string "DPLL phi : ";
+   print_modele (solveur_dpll_rec exemple_7_4 []);
+   print_endline "";
+   print_int (pur ex);
+   print_endline "" *)
 
 let () =
-   let clauses = Dimacs.parse Sys.argv.(1) in
-   print_modele (solveur_dpll_rec clauses [])
+  let clauses = Dimacs.parse Sys.argv.(1) in
+  print_modele (solveur_dpll_rec clauses [])

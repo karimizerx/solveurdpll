@@ -1,0 +1,7 @@
+test/sat/accessibilite.cnf
+36
+Runtime = 
+
+
+test/sat/ais12.cnf
+5668

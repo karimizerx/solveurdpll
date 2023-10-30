@@ -1,0 +1,7 @@
+
+test/unsat/bf1355-075.cnf.txt
+6790
+UNSAT
+Runtime = 155
+
+
