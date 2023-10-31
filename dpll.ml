@@ -47,12 +47,18 @@ let coloriage = [
 
 (* ----------------------------------------------------------- *)
 
+let print clause =
+        
 (* simplifie : int -> int list list -> int list list 
    applique la simplification de l'ensemble des clauses en mettant
    le littéral l à vrai *)
-let simplifie l clauses =
-  (* à compléter *)
-  []
+let rec simplifie l clauses =
+  match clauses with
+  | [] -> []
+  | head::tail -> if (list.mem l head) then simplifie l tail else head::(simplifie l tail)
+;
+
+simplifie 3 exemple_7_4
 
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
@@ -69,7 +75,7 @@ let rec solveur_split clauses interpretation =
   match branche with
   | None -> solveur_split (simplifie (-l) clauses) ((-l)::interpretation)
   | _    -> branche
-
+;
 (* tests *)
 (* let () = print_modele (solveur_split systeme []) *)
 (* let () = print_modele (solveur_split coloriage []) *)
@@ -84,7 +90,7 @@ let rec solveur_split clauses interpretation =
 let pur clauses =
   (* à compléter *)
   0
-
+;
 (* unitaire : int list list -> int
     - si `clauses' contient au moins une clause unitaire, retourne
       le littéral de cette clause unitaire ;
@@ -92,12 +98,12 @@ let pur clauses =
 let unitaire clauses =
   (* à compléter *)
   0
-
+;
 (* solveur_dpll_rec : int list list -> int list -> int list option *)
 let rec solveur_dpll_rec clauses interpretation =
   (* à compléter *)
   None
-
+;
 
 (* tests *)
 (* ----------------------------------------------------------- *)
@@ -107,3 +113,4 @@ let rec solveur_dpll_rec clauses interpretation =
 (* let () =
   let clauses = Dimacs.parse Sys.argv.(1) in
   print_modele (solveur_dpll_rec clauses []) *)
+
