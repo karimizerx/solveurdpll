@@ -30,14 +30,10 @@ Oui, `make dppl` s'exécte sans erreurs ou warnings. Et `./dpll sudoku-4x4.cnf` 
    - Si non, expliquez en quelques phrases en français comment
      fonctionne votre implémentation de `simplifie`.
 
-Nous avons simplifie de deux manières : avec et sans `filter_map` :
-   <!-- 1. Avec `filter_map`, nous avons appliqué à chaque clause une fonction qui renvoie:
-      - `None` s'il faut supprimer la clause, i.e le littéral `l` appartient à cette clause.
-      - `Some clause` en supprimant le littéral `not(l)` de la clause. -->
-   2. Sans `filter_map`, simplifie devient récurssive, et nous avons appliqué un pattern matching sur l'ensemble des clauses, avec disjonction de trois cas :
-      - la liste des clauses est vide -> On renvoie la liste `[]`.
-      - la clause actuelle contient le littéral `l` -> On supprime cette liste et on continue.
-      - la clause actuelle contient le littéral `not(l)` ou non -> On supprime le littéral `not(l)` si nécessaire et on continue.
+Sans `filter_map`, simplifie devient récurssive, et nous avons appliqué un pattern matching sur l'ensemble des clauses, avec disjonction de trois cas :
+   - la liste des clauses est vide -> On renvoie la liste `[]`.
+   - la clause actuelle contient le littéral `l` -> On supprime cette liste et on continue.
+   - la clause actuelle contient le littéral `not(l)` ou non -> On supprime le littéral `not(l)` si nécessaire et on continue.
 
 ---
 
