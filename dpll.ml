@@ -31,43 +31,20 @@ let print_modele : int list option -> unit = function
         modele2;
       print_string "0\n"
 
-let rec remove_el l clause =
-  match clause with
+(* remove_el : int -> int list -> int list
+   Supprime toutes les occurences de [l] dans [clause] et renvoie la nouvelle list. *)
+let rec remove_el l = function
   | [] -> []
   | h :: t when h = l -> remove_el l t
   | h :: t -> h :: remove_el l t
 
+(* occ : int -> int list
+   Renvoie le nombre d'occurence de [l] dans la liste. *)
 let rec occ l = function
   | [] -> 0
   | h :: t -> if h = l then 1 + occ l t else occ l t
 
-let getListOfProp clauses =
-  let rec aux (clauses : int list list) (ens : int list) : int list =
-    match clauses with
-    | [] -> ens
-    | clause :: otherclauses ->
-        aux otherclauses
-          (ens @ List.filter (fun e -> not (List.mem e ens)) clause)
-  in
-  aux clauses []
-
-let getMinLgClause clauses =
-  let rec aux clauses lg =
-    match clauses with
-    | [] -> lg
-    | h :: t -> if List.length h < lg then aux t (List.length h) else aux t lg
-  in
-  aux clauses (List.length (List.hd clauses))
-
-let getMinClause clauses =
-  let minlg = getMinLgClause clauses in
-  let rec aux clauses ens =
-    match clauses with
-    | [] -> ens
-    | h :: t -> if List.length h = minlg then aux t (ens @ h) else aux t ens
-  in
-  aux clauses []
-
+(* Fonction d'affichage pour les tests (voir plus bas). *)
 let pp_clause clause =
   List.iter
     (fun i ->
@@ -83,6 +60,12 @@ let pp_clauses clauses =
       print_string "] ; ")
     clauses
 
+(* Renvoie la liste des propositions présentes dans toutes les clauses de taille [len]. *)
+let rec propOfClauseLength len acc = function
+  (* On suppose que [clauses] est toujours triée par longueur de ses clauses. *)
+  | [] -> acc
+  | h :: t when List.length h > len -> acc
+  | h :: t -> propOfClauseLength len (acc @ h) t
 (* ----------------------------------------------------------- *)
 
 (* simplifie : int -> int list list -> int list list
@@ -93,12 +76,6 @@ let rec simplifie l clauses =
   | [] -> []
   | clause :: otherclauses when List.mem l clause -> simplifie l otherclauses
   | clause :: otherclauses -> remove_el (-l) clause :: simplifie l otherclauses
-
-(* let simplifie l clauses =
-   filter_map
-     (fun clause ->
-       if List.mem l clause then None else Some (remove_el l clause))
-     clauses *)
 
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
@@ -125,77 +102,56 @@ let rec solveur_split clauses interpretation =
       ce littéral ;
     - sinon, lève une exception `Failure "pas de littéral pur"' *)
 let rec pur clauses =
-  let propositionslist = getListOfProp clauses in
-  let rec aux list2prop =
-    match list2prop with
+  let propositionslist =
+    List.sort_uniq (fun a b -> a - b) (List.concat clauses)
+  in
+  let rec aux = function
     | [] -> raise Not_found
     | h :: t when not (List.mem (-h) propositionslist) -> h
     | h :: t -> aux t
   in
   aux propositionslist
 
-(* let pur clauses =
-   let plist =
-     List.sort
-       (fun a b -> if a = b then 0 else if a < b then -1 else 1)
-       (List.concat clauses)
-   in
-   List.find (fun el -> List.mem (-el) plist) plist *)
-
 (* unitaire : int list list -> int
     - si 'clauses' contient au moins une clause unitaire, retourne
       le littéral de cette clause unitaire ;
     - sinon, lève une exception `Not_found' *)
-let rec unitaire clauses =
-  match clauses with
+let rec unitaire = function
   | [] -> raise Not_found
-  | (a :: []) :: t -> a
-  | h :: t -> unitaire t
+  | (p :: []) :: otherclauses -> p
+  | clause :: otherclauses -> unitaire otherclauses
 
-let choix (clauses : int list list) : int =
-  let mlist = getMinClause clauses in
-  let rec aux list2prop =
-    match list2prop with
-    | [] -> List.hd mlist
-    | h :: t when List.mem h mlist && List.mem (-h) mlist -> h
-    | h :: t -> aux t
+(* choix : int list list -> int
+   Renvoie le littéral le plus présent dans les plus petites clauses. *)
+let choix ensclauses =
+  (* On trie [ensclauses] par longueur de ses clauses. *)
+  let clauses =
+    List.sort (fun c1 c2 -> List.length c2 - List.length c1) ensclauses
   in
-  aux mlist
-
-(* let choix2 (clauses : int list list) : int =
-   let clausesTrieesParTaille =
-     List.sort
-       (fun a b ->
-         if List.length a = List.length b then 0
-         else if List.length a < List.length b then -1
-         else 1)
-       clauses
-   in
-   (* let lenmin = List.length (List.nth clausesTrieesParTaille 0) in *)
-   let lenmin = getMinLgClause clauses in
-   let listPropInClausesMin =
-     List.concat
-       (List.filter (fun clause -> List.length clause = lenmin) clauses)
-   in
-   let listPropInClausesMinTriees =
-     List.sort
-       (fun a b -> if occ a = occ b then 0 else if occ a < occ b then -1 else 1)
-       listPropInClausesMin
-   in
-   List.nth listPropInClausesMinTriees
-     (List.length listPropInClausesMinTriees - 1) *)
+  (* On récupère la longueur de la plus petite clause. *)
+  let lenmin = List.length (List.nth clauses 0) in
+  (* On récupère l'ensemble des propositions qui sont dans les plus petites clauses. *)
+  let propInMinClause = propOfClauseLength lenmin [] clauses in
+  (* On les trie par occurence. *)
+  let propInMinClauseOcc =
+    List.sort
+      (fun a b -> occ b propInMinClause - occ a propInMinClause)
+      propInMinClause
+  in
+  (* On renvoie celle qui apparaît le plus souvent. *)
+  List.nth (List.rev propInMinClauseOcc) 0
 
 (* solveur_dpll_rec : int list list -> int list -> int list option *)
 let rec solveur_dpll_rec clauses interpretation =
-  (* Cas 1 : La formule est satisfiable => Renvoie une interprétation qui la satisfait *)
+  (* Cas 1 : La formule est satisfiable => Renvoie une interprétation qui la satisfait. *)
   if clauses = [] then Some interpretation
   else if
-    (* Cas 2 : La fonction aboutie sur un échec => La formule n'est pas satisfiable *)
+    (* Cas 2 : La fonction aboutie sur un échec => La formule n'est pas satisfiable. *)
     List.mem [] clauses
   then None
   else
     let u = try unitaire clauses with Not_found -> 0 in
-    (* Cas 3 : Si on trouve un littéral unitaire => Simplification du littéral et continue *)
+    (* Cas 3 : Si on trouve un littéral dans une clause unitaire => Simplification du littéral et continue *)
     if u != 0 then solveur_dpll_rec (simplifie u clauses) (u :: interpretation)
     else
       (* Cas 4 : Si on trouve un littéral pur => Simplification du littéral et continue *)

@@ -1,7 +1,37 @@
 
-test/unsat/bf1355-075.cnf.txt
+test/unsat/aim-50-1_6-no-1.cnf
+90
+UNSAT
+Runtime = 0
+test/unsat/bf1355-075.cnf
 6790
 UNSAT
 Runtime = 155
-
-
+test/unsat/dubois20.cnf
+172
+UNSAT
+Runtime = 17
+test/unsat/dubois21.cnf
+180
+UNSAT
+Runtime = 41
+test/unsat/exemple-3-13.cnf
+8
+UNSAT
+Runtime = 0
+test/unsat/exemple-7-4.cnf
+9
+UNSAT
+Runtime = 0
+test/unsat/grammaire.cnf
+18
+UNSAT
+Runtime = 0
+test/unsat/hole6.cnf
+145
+UNSAT
+Runtime = 0
+test/unsat/systeme.cnf
+14
+UNSAT
+Runtime = 0

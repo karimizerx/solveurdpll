@@ -31,9 +31,9 @@ Oui, `make dppl` s'exécte sans erreurs ou warnings. Et `./dpll sudoku-4x4.cnf` 
      fonctionne votre implémentation de `simplifie`.
 
 Nous avons simplifie de deux manières : avec et sans `filter_map` :
-   1. Avec `filter_map`, nous avons appliqué à chaque clause une fonction qui renvoie:
+   <!-- 1. Avec `filter_map`, nous avons appliqué à chaque clause une fonction qui renvoie:
       - `None` s'il faut supprimer la clause, i.e le littéral `l` appartient à cette clause.
-      - `Some clause` en supprimant le littéral `not(l)` de la clause.
+      - `Some clause` en supprimant le littéral `not(l)` de la clause. -->
    2. Sans `filter_map`, simplifie devient récurssive, et nous avons appliqué un pattern matching sur l'ensemble des clauses, avec disjonction de trois cas :
       - la liste des clauses est vide -> On renvoie la liste `[]`.
       - la clause actuelle contient le littéral `l` -> On supprime cette liste et on continue.
@@ -51,8 +51,8 @@ Nous avons simplifie de deux manières : avec et sans `filter_map` :
    implémentation de la fonction `unitaire`.
 
 Pour l'implémentation de `unitaire`, nous n'avons utilisé aucune fonction auxiliaire. Celle-ci est récursive, et utilise un pattern matching sur chaque clause :
-   - si on trouve une clause de type `p :: []`, i.e une clause avec seulement une proposition `p`, alors elle est unitaire et on l'a renvoie.
-   - si on tombe sur la liste vide, on lève une exception `Not_found` à l'aide de la fonction `raise`
+   - si on trouve une clause de type `p :: []`, i.e une clause avec seulement une proposition `p`, alors cette clause est unitaire et on renvoie le littéral `p`.
+   - si on tombe sur la liste vide, on lève une exception `Not_found` à l'aide de la fonction `raise`.
 
 ---
 
@@ -62,7 +62,10 @@ Pour l'implémentation de `unitaire`, nous n'avons utilisé aucune fonction auxi
    utilisées dans votre implémentation de la fonction `pur`.
 
 Pour l'implémentation de `pur`, nous avons utilisé plusieurs fonctions auxiliaires :
-
+   - `List.concat` pour concaténer toutes les clauses dans `clauses`, puis `List.sort_uniq` pour récupérer la liste (triée) de toutes les propositions présentes dans la formule.
+   - une fonction auxiliaire `aux` :
+      - si on trouve un littéral `p` qui n'a pas sa négation `-p` (recherche avec `List.mem`) dans la liste des propositions, alors il est pur et on le renvoie.
+      - si on tombe sur la liste vide, on lève une exception `Not_found` à l'aide de la fonction `raise`.
 
 ---
 
@@ -70,13 +73,23 @@ Pour l'implémentation de `pur`, nous avons utilisé plusieurs fonctions auxilia
    `solveur_split` et `solveur_dpll_rec` ont un comportement
    différent, et expliquez les différences entre ces deux fonctions.
 
-**à remplir**
+La différence entre ces deux fonctions est la recherche d'une clause unitaire ou d'un littéral pur dans le `solveur_dpll_rec`, 
+qui n'est pas présente dans le `sovleur_split` (celle-ci se contente de choisir le premier littéral de la première clause).
+En effet, trouver une clause unitaire ou un littéral pur réduit drastiquement la recherche d'une interprétation pour la formule.
 
 ---
 
 5. Avez-vous d'autres remarques sur votre rendu ? (question optionnelle)
 
-**à remplir**
+Concernant la fonction `choix : int list list -> int`, l'idée est la suivante :
+Nous essayons d'obtenir une clause unitaire, pour simplifier au plus notre formule.
+Pour cela, nous ne considérons dans `choix` que les clauses les plus petites.
+Puis, parmis toutes les propositions que nous pouvons simplifier, afin de poursuivre notre objectif de clause unitaire,
+nous cherchons la proposition la plus présente. Et c'est celle-ci que l'on choisit.
+
+Ce choix nous paraît être le plus efficace. Pourtant, force est de constater que, pour certains fichiers tests :
+`unsat/dubois20.cnf unsat/dubois21.cnf sat/ais12.cnf unsat/bf1355-075.cnf unsat/aim-50-1_6-no-1.cnf sat/sudoku-9x9-god.cnf sat/hamilton.cnf.txt`
+Cette méthode est très lente. Et même plus lente que si nous choisissions toujours la première proposition de la première clause. 
 
 ---
 
